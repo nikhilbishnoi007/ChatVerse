@@ -1,10 +1,10 @@
-
+import 'package:chatverse/screens/chat_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
 
 import 'package:chatverse/screens/login_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -62,28 +62,73 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    DateTime currentdate = DateTime.now();
+    final format = DateFormat("h:mm a").format(currentdate);
     return Scaffold(
-      drawerEdgeDragWidth: 120,
-      appBar: AppBar(title: Text("Home"), centerTitle: true),
-      body: Container(),
-      drawer: Drawer(
-        width: 250,
-        child: Column(
+      backgroundColor: const Color(0xFF1E3A8A),
+      body: Container(
+        key: ValueKey("container"),
+        child: ListView(
           children: [
-            SizedBox(height: 100),
-            FlutterLogo(size: 100),
             Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ListTile(
-                onTap: () async {
-                  final res = await confirmLogout(context);
-                  if (res) {
-                    if (!context.mounted) return;
-                    logout(context);
-                  }
-                },
-                leading: Icon(CupertinoIcons.square_arrow_right),
-                title: Text("LogOut", style: TextStyle(color: Colors.red)),
+              padding: const EdgeInsets.only(
+                left: 20.0,
+                right: 20.0,
+                top: 20.0,
+              ),
+              child: Row(
+                mainAxisAlignment: .spaceBetween,
+                children: [
+                  Text(
+                    "ChatVerse",
+                    style: TextStyle(
+                      color: Color(0xFFF1F5F9),
+                      fontSize: 26.0,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {},
+                    icon: Icon(
+                      CupertinoIcons.search,
+                      color: Color.fromARGB(
+                        255,
+                        194,
+                        195,
+                        197,
+                      ).withValues(alpha: 1.2),
+                      size: 26,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height / 1.1,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              child: ListView(
+                children: [
+                  ListTile(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ChatScreen(username: "Username",)),
+                      );
+                    },
+                    leading: CircleAvatar(child: Icon(CupertinoIcons.person)),
+                    title: Text("Username"),
+                    subtitle: Text("Last message from this user"),
+                    trailing: Text(format),
+                  ),
+                ],
               ),
             ),
           ],
