@@ -22,7 +22,7 @@ class _ChatScreenState extends State<ChatScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
               child: SizedBox(
-                height: 56,
+                height: 46,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
