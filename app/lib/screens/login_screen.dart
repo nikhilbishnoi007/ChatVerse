@@ -1,7 +1,10 @@
 import 'package:chatverse/screens/forgot_password.dart';
 import 'package:chatverse/screens/home_screen.dart';
 import 'package:chatverse/screens/register.screen.dart';
+import 'package:chatverse/services/database.dart';
+import 'package:chatverse/services/shared_prefrence.dart';
 import 'package:chatverse/utils/validator.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -26,9 +29,23 @@ class _LoginScreenState extends State<LoginScreen> {
         email: email.text,
         password: pass.text,
       );
+      QuerySnapshot snapshot = await DatabaseMethods().getUserByEmail(
+        email.text,
+      );
+      if (snapshot.docs.isEmpty) {
+        throw Exception('User data not found');
+      }
+      final data = snapshot.docs.first.data() as Map<String, dynamic>;
+      final prefs = SharedPrefrenceHelper();
+
+      await prefs.saveUserId(data['uid'] as String);
+      await prefs.saveUserDisplayName(data['name'] as String);
+      await prefs.saveUserEmail(data['email'] as String);
+      await prefs.saveUserName(data['username'] as String);
+      await prefs.saveUserProfile(data['dp'] as String? ?? '');
 
       if (!context.mounted) return;
-      Navigator.pushAndRemoveUntil(
+      Navigator.pushAndRemoveUntil( 
         context,
         MaterialPageRoute(builder: (context) => HomeScreen()),
         (value) => false,
@@ -120,7 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           key: _formKey,
                           child: ListView(
                             children: [
-                              SizedBox(height: 20,),
+                              SizedBox(height: 20),
                               Text("Email"),
                               TextFormField(
                                 controller: email,
@@ -165,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   ),
                                 ),
-                                validator: (value)=>Validators.email(value)
+                                validator: (value) => Validators.email(value),
                               ),
                               SizedBox(height: 20),
                               Text("password"),
@@ -224,7 +241,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     ),
                                   ),
                                 ),
-                                validator: (value)=>Validators.loginPassword(value)
+                                validator: (value) =>
+                                    Validators.loginPassword(value),
                               ),
                               Container(
                                 alignment: Alignment.bottomRight,
@@ -273,11 +291,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   Row(
                     mainAxisAlignment: .center,
                     children: [
-                      Text("Don't have a an account ?",style: TextStyle(
-                        color: Colors.grey.shade500,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold
-                      ),),
+                      Text(
+                        "Don't have a an account ?",
+                        style: TextStyle(
+                          color: Colors.grey.shade500,
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       TextButton(
                         onPressed: () {
                           Navigator.pushAndRemoveUntil(
