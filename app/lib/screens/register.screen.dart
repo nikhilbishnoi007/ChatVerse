@@ -1,11 +1,13 @@
+import 'package:chatverse/services/database.dart';
+import 'package:chatverse/services/shared_prefrence.dart';
 import 'package:chatverse/utils/validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:chatverse/screens/home_screen.dart';
 import 'package:chatverse/screens/login_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+
+// import 'package:uuid/uuid.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -28,44 +30,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
       isLoading = true;
     });
     try {
-      await auth.createUserWithEmailAndPassword(
+      final cred = await auth.createUserWithEmailAndPassword(
         email: email.text,
         password: pass.text,
       );
+      final id = cred.user!.uid;
+      final username = email.text.trim().toLowerCase().split("@").first;
+      Map<String, dynamic> userInfo = {
+        "uid": id,
+        "name": name.text,
+        "email": email.text,
+        "username": username,
+        "dp": "",
+      };
+      await DatabaseMethods().addUser(userInfo, id);
+      await SharedPrefrenceHelper().saveUserId(id);
+      await SharedPrefrenceHelper().saveUserDisplayName(name.text);
+      await SharedPrefrenceHelper().saveUserEmail(email.text);
+      await SharedPrefrenceHelper().saveUserName(username);
+      await SharedPrefrenceHelper().saveUserProfile("");
       if (!context.mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => HomeScreen()),
         (value) => false,
       );
-    } catch (e) {
+    } on FirebaseAuthException catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
-    } finally {
-      if (mounted) setState(() => isLoading = false);
-    }
-  }
-
-  Future<void> continuewithGoogle(BuildContext context) async {
-    String clientId = dotenv.env['GOOGLE_CLIENT_ID'] ?? "";
-    try {
-      GoogleSignIn signIn = GoogleSignIn.instance;
-      await signIn.initialize(serverClientId: clientId);
-      GoogleSignInAccount result = await signIn.authenticate();
-      GoogleSignInAuthentication googleAuth = result.authentication;
-      final credential = GoogleAuthProvider.credential(
-        idToken: googleAuth.idToken,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'Registration failed')),
       );
-      setState(() => isLoading = true);
-      await auth.signInWithCredential(credential);
-      if (!context.mounted) return;
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
-        (value) => false,
-      );
-    } catch (e) {
+    } catch (e,st) {
+      debugPrint('Register error: $e\n$st'); 
       if (!context.mounted) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(e.toString())));
