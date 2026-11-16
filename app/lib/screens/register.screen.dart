@@ -22,6 +22,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final name = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool hidepass = true;
+  bool hidesecondpass=true;
   final auth = FirebaseAuth.instance;
   bool isLoading = false;
 
@@ -52,7 +53,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (!context.mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
+        PageRouteBuilder(
+          transitionDuration: Duration(milliseconds: 350),
+          reverseTransitionDuration: Duration(milliseconds: 300),
+          pageBuilder: (context, animation, secondaryAnimation) => HomeScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            final curved = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+            );
+            return FadeTransition(
+              opacity: curved,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: Offset(0.15, 0),
+                  end: Offset.zero,
+                ).animate(curved),
+                child: child,
+              ),
+            );
+          },
+        ),
         (value) => false,
       );
     } on FirebaseAuthException catch (e) {
@@ -60,8 +81,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? 'Registration failed')),
       );
-    } catch (e,st) {
-      debugPrint('Register error: $e\n$st'); 
+    } catch (e, st) {
+      debugPrint('Register error: $e\n$st');
       if (!context.mounted) return;
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(e.toString())));
@@ -307,7 +328,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               TextFormField(
                                 textAlignVertical: TextAlignVertical.center,
                                 controller: confirmpass,
-                                obscureText: hidepass,
+                                obscureText: hidesecondpass,
                                 decoration: InputDecoration(
                                   hint: Text(
                                     "Re-enter your password",
@@ -350,7 +371,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   ),
                                   suffixIcon: IconButton(
                                     onPressed: () {
-                                      setState(() => hidepass = !hidepass);
+                                      setState(() => hidesecondpass = !hidesecondpass);
                                     },
                                     icon: Icon(
                                       hidepass
@@ -406,8 +427,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         onPressed: () {
                           Navigator.pushAndRemoveUntil(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => LoginScreen(),
+                            PageRouteBuilder(
+                              transitionDuration: Duration(milliseconds: 350),
+                              reverseTransitionDuration: Duration(
+                                milliseconds: 300,
+                              ),
+                              pageBuilder: (
+                                context,
+                                animation,
+                                secondaryAnimation,
+                              ) => LoginScreen(),
+                              transitionsBuilder:
+                                  (
+                                    context,
+                                    animation,
+                                    secondaryAnimation,
+                                    child,
+                                  ) {
+                                    final curved = CurvedAnimation(
+                                      parent: animation,
+                                      curve: Curves.easeOutCubic,
+                                    );
+                                    return FadeTransition(
+                                      opacity: curved,
+                                      child: SlideTransition(
+                                        position: Tween<Offset>(
+                                          begin: Offset(0.15, 0),
+                                          end: Offset.zero,
+                                        ).animate(curved),
+                                        child: child,
+                                      ),
+                                    );
+                                  },
                             ),
                             (value) => false,
                           );

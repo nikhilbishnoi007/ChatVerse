@@ -45,9 +45,29 @@ class _LoginScreenState extends State<LoginScreen> {
       await prefs.saveUserProfile(data['dp'] as String? ?? '');
 
       if (!context.mounted) return;
-      Navigator.pushAndRemoveUntil( 
+      Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => HomeScreen()),
+        PageRouteBuilder(
+          transitionDuration: Duration(milliseconds: 350),
+          reverseTransitionDuration: Duration(milliseconds: 300),
+          pageBuilder: (context, animation, secondaryAnimation) => HomeScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            final curved = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+            );
+            return FadeTransition(
+              opacity: curved,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: Offset(0.15, 0),
+                  end: Offset.zero,
+                ).animate(curved),
+                child: child,
+              ),
+            );
+          },
+        ),
         (value) => false,
       );
     } catch (e) {
@@ -250,8 +270,40 @@ class _LoginScreenState extends State<LoginScreen> {
                                   onPressed: () {
                                     Navigator.push(
                                       context,
-                                      MaterialPageRoute(
-                                        builder: (context) => ForgotScreen(),
+                                      PageRouteBuilder(
+                                        transitionDuration: Duration(
+                                          milliseconds: 350,
+                                        ),
+                                        reverseTransitionDuration: Duration(
+                                          milliseconds: 300,
+                                        ),
+                                        pageBuilder: (
+                                          context,
+                                          animation,
+                                          secondaryAnimation,
+                                        ) => ForgotScreen(),
+                                        transitionsBuilder:
+                                            (
+                                              context,
+                                              animation,
+                                              secondaryAnimation,
+                                              child,
+                                            ) {
+                                              final curved = CurvedAnimation(
+                                                parent: animation,
+                                                curve: Curves.easeOutCubic,
+                                              );
+                                              return FadeTransition(
+                                                opacity: curved,
+                                                child: SlideTransition(
+                                                  position: Tween<Offset>(
+                                                    begin: Offset(0.15, 0),
+                                                    end: Offset.zero,
+                                                  ).animate(curved),
+                                                  child: child,
+                                                ),
+                                              );
+                                            },
                                       ),
                                     );
                                   },
@@ -303,8 +355,38 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {
                           Navigator.pushAndRemoveUntil(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) => RegisterScreen(),
+                            PageRouteBuilder(
+                              transitionDuration: Duration(milliseconds: 350),
+                              reverseTransitionDuration: Duration(
+                                milliseconds: 300,
+                              ),
+                              pageBuilder: (
+                                context,
+                                animation,
+                                secondaryAnimation,
+                              ) => RegisterScreen(),
+                              transitionsBuilder:
+                                  (
+                                    context,
+                                    animation,
+                                    secondaryAnimation,
+                                    child,
+                                  ) {
+                                    final curved = CurvedAnimation(
+                                      parent: animation,
+                                      curve: Curves.easeOutCubic,
+                                    );
+                                    return FadeTransition(
+                                      opacity: curved,
+                                      child: SlideTransition(
+                                        position: Tween<Offset>(
+                                          begin: Offset(0.15, 0),
+                                          end: Offset.zero,
+                                        ).animate(curved),
+                                        child: child,
+                                      ),
+                                    );
+                                  },
                             ),
                             (value) => false,
                           );
