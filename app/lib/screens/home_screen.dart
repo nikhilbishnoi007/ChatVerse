@@ -19,20 +19,6 @@ class _HomeScreenState extends State<HomeScreen> {
   bool searching = false;
   final searchController = TextEditingController();
   String query = '';
-  // void initiateSearch(String value) {
-  //   if (value.isEmpty) {
-  //     setState(() {
-  //       query = [];
-  //       temp = [];
-  //     });
-  //   }
-  //   setState(() {
-  //     searching = true;
-  //   });
-  //   var captalizedValue =
-  //       value.substring(0, 1).toUpperCase() + value.substring(1);
-  //   if (query.isEmpty && value.length == 1) {}
-  // }
 
   Future<bool> confirmLogout(BuildContext context) async {
     final res = await showDialog(
