@@ -1,5 +1,9 @@
+import 'package:chatverse/services/database.dart';
+import 'package:chatverse/services/shared_prefrence.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class ChatScreen extends StatefulWidget {
   final String name;
@@ -19,7 +23,58 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final _controller = TextEditingController();
+  final _messagecontroller = TextEditingController();
+  String? myName, myProfilePic, myEmail, myUsername, messageId;
+  late final Stream<QuerySnapshot<Map<String, dynamic>>> _messagesStream;
+  Future<void> getDetails() async {
+    final prefs = SharedPrefrenceHelper();
+    final name = await prefs.getUserDisplayName();
+    final pic = await prefs.getUserProfile();
+    final email = await prefs.getUserEmail();
+    final username = await prefs.getUserName();
+
+    if (!mounted) return;
+    setState(() {
+      myName = name;
+      myProfilePic = pic;
+      myEmail = email;
+      myUsername = username;
+    });
+  }
+
+  Future<void> addMessage() async {
+    final message = _messagecontroller.text.trim();
+    final me = myUsername;
+    if (message.isEmpty || me == null) return;
+    _messagecontroller.clear();
+    try {
+      final db = DatabaseMethods();
+      Map<String, dynamic> messageInfoMap = {
+        "message": message,
+        "sendBy": me,
+        "time": FieldValue.serverTimestamp(),
+      };
+      Map<String, dynamic> info = {
+        "lastMessage": message,
+        "lastMessageSendBy": me,
+        "lastMessageTime": FieldValue.serverTimestamp(),
+      };
+      await db.addMessage(widget.chatRoomId, messageInfoMap);
+      await db.updateLastMessage(widget.chatRoomId, info);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _messagesStream = DatabaseMethods().getMessages(widget.chatRoomId);
+    getDetails();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -107,56 +162,101 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: Column(
                     children: [
                       Expanded(
-                        child: ListView(
-                          padding: const EdgeInsets.all(20),
-                          children: [
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: Container(
-                                padding: const EdgeInsets.all(10),
-                                constraints: BoxConstraints(
-                                  maxWidth:
-                                      MediaQuery.of(context).size.width * 0.7,
-                                ),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFD2D5DB),
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(10),
-                                    topRight: Radius.circular(10),
-                                    bottomLeft: Radius.circular(10),
-                                  ),
-                                ),
-                                child: const Text(
-                                  "Hello how was the day?",
-                                  style: TextStyle(fontSize: 15),
-                                ),
-                              ),
+                        child:
+                            StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                              stream: _messagesStream,
+                              builder: (context, snapshot) {
+                                if (snapshot.hasError) {
+                                   debugPrint('Messages error: ${snapshot.error}');
+                                  return const Center(
+                                    child: Text('Something went wrong'),
+                                  );
+                                }
+                                if (!snapshot.hasData) {
+                                  return const Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                }
+                                final docs = snapshot.data!.docs;
+                                if (docs.isEmpty) {
+                                  return const Center(child: Text("Say hii"));
+                                }
+                                return ListView.builder(
+                                  reverse: true,
+                                  padding: EdgeInsets.all(20),
+                                  itemCount: docs.length,
+                                  itemBuilder: (context, i) {
+                                    final data = docs[i].data();
+                                    final isMe = data['sendBy'] == myUsername;
+                                    final ts = data['time'] as Timestamp?;
+                                    final time = ts == null
+                                        ? ""
+                                        : DateFormat("h:mm a")
+                                              .format(ts.toDate());
+                                    return Align(
+                                      alignment: isMe
+                                          ? Alignment.centerRight
+                                          : Alignment.centerLeft,
+                                      child: Container(
+                                        margin: EdgeInsets.only(bottom: 20.0),
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 12.0,
+                                          vertical: 8.0,
+                                        ),
+                                        constraints: BoxConstraints(
+                                          maxWidth:
+                                              MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.67,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: isMe
+                                              ? const Color(0xFF1E3A8A)
+                                              : const Color(0xFFE5E7EB),
+                                          borderRadius: BorderRadius.only(
+                                            topLeft: const Radius.circular(12),
+                                            topRight: const Radius.circular(12),
+                                            bottomLeft: Radius.circular(
+                                              isMe ? 12 : 0,
+                                            ),
+                                            bottomRight: Radius.circular(
+                                              isMe ? 0 : 12,
+                                            ),
+                                          ),
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              data['message'] ?? "",
+                                              style: TextStyle(
+                                                fontSize: 15,
+                                                color: isMe
+                                                    ? Colors.white
+                                                    : Colors.black87,
+                                              ),
+                                            ),
+                                            SizedBox(height: 4),
+                                            Text(
+                                              time,
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: isMe
+                                                    ? Colors.white70
+                                                    : Colors.black54,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
                             ),
-                            const SizedBox(height: 20),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: Container(
-                                padding: const EdgeInsets.all(10),
-                                constraints: BoxConstraints(
-                                  maxWidth:
-                                      MediaQuery.of(context).size.width * 0.7,
-                                ),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFC9C4C4),
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(10),
-                                    topRight: Radius.circular(10),
-                                    bottomRight: Radius.circular(10),
-                                  ),
-                                ),
-                                child: const Text(
-                                  "it was great! what about you?",
-                                  style: TextStyle(fontSize: 15),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
                       ),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
@@ -165,7 +265,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           children: [
                             Expanded(
                               child: TextField(
-                                controller: _controller,
+                                controller: _messagecontroller,
                                 minLines: 1,
                                 maxLines: 5,
                                 textCapitalization:
@@ -194,7 +294,9 @@ class _ChatScreenState extends State<ChatScreen> {
                             ),
                             const SizedBox(width: 8),
                             IconButton(
-                              onPressed: () {},
+                              onPressed: () {
+                                addMessage();
+                              },
                               style: IconButton.styleFrom(
                                 backgroundColor: const Color(0xFF1E3A8A),
                                 shape: const CircleBorder(),
