@@ -98,7 +98,7 @@ class _ChatListState extends State<ChatList> {
                     backgroundImage: dp.isNotEmpty ? NetworkImage(dp) : null,
                     child: dp.isEmpty
                         ? Text(
-                            name.isNotEmpty ? name[0].toUpperCase() : '?',
+                            other.isNotEmpty ? other[0]: '?',
                             style: const TextStyle(color: Colors.white),
                           )
                         : null,

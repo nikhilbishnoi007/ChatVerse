@@ -103,8 +103,8 @@ class _ChatScreenState extends State<ChatScreen> {
                         : null,
                     child: widget.dp.isEmpty
                         ? Text(
-                            widget.name.isNotEmpty
-                                ? widget.name[0].toUpperCase()
+                            widget.username.isNotEmpty
+                                ? widget.username[0]
                                 : '?',
                             style: const TextStyle(
                               color: Colors.white,

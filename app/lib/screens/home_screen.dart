@@ -1,3 +1,4 @@
+import 'package:chatverse/screens/profile_screen.dart';
 import 'package:chatverse/services/shared_prefrence.dart';
 import 'package:chatverse/widgets/chat_widget.dart';
 import 'package:chatverse/widgets/search_widget.dart';
@@ -18,13 +19,17 @@ class _HomeScreenState extends State<HomeScreen> {
   bool searching = false;
   final searchController = TextEditingController();
   String query = '';
-  String? myUsername;
+  String? myUsername, myDp;
 
   Future<void> _getUsername() async {
-  final u = await SharedPrefrenceHelper().getUserName();
-  if (!mounted) return;
-  setState(() => myUsername = u);
-}
+    final u = await SharedPrefrenceHelper().getUserName();
+    final dp = await SharedPrefrenceHelper().getUserProfile();
+    if (!mounted) return;
+    setState(() {
+      myUsername = u;
+      myDp = dp;
+    });
+  }
 
   Future<bool> confirmLogout(BuildContext context) async {
     final res = await showDialog(
@@ -69,8 +74,9 @@ class _HomeScreenState extends State<HomeScreen> {
           .showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
+
   @override
-  void initState(){
+  void initState() {
     super.initState();
     _getUsername();
   }
@@ -83,6 +89,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final dp = myDp ?? '';
+    final initial = (myUsername != null && myUsername!.isNotEmpty)
+        ? myUsername![0]
+        : '?';
     return PopScope(
       canPop: !searching,
       onPopInvokedWithResult: (didPop, result) {
@@ -166,28 +176,22 @@ class _HomeScreenState extends State<HomeScreen> {
                           size: 26,
                         ),
                       ),
-                      PopupMenuButton<String>(
-                        elevation: 6,
-                        offset: const Offset(0, 45),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        icon: const Icon(
-                          Icons.more_vert,
-                          color: Color(0xFFC2C3C5),
-                        ),
-                        onSelected: (value) async {
-                          if (value == "logout") {
-                            final response = await confirmLogout(context);
-                            if (response) {
-                              if (!context.mounted) return;
-                              logout(context);
-                            }
-                          }
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (contxt)=>ProfileScreen()));
                         },
-                        itemBuilder: (context) => const [
-                          PopupMenuItem(value: 'logout', child: Text('Logout')),
-                        ],
+                        child: CircleAvatar(
+                          backgroundColor: Colors.white,
+                          backgroundImage: dp.isNotEmpty
+                              ? NetworkImage(dp)
+                              : null,
+                          child: dp.isEmpty
+                              ? Text(
+                                  initial,
+                                  style: const TextStyle( color: Color(0xFF1E3A8A),),
+                                )
+                              : null,
+                        ),
                       ),
                     ],
                   ),
@@ -205,12 +209,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: double.infinity,
                     child: (searching && query.isNotEmpty)
                         ? SearchResult(query: query)
-                        : (myUsername==null
-                        ? const Center(child: CircularProgressIndicator())
-                        :ChatList(myUsername: myUsername!)),
-                        )
+                        : (myUsername == null
+                              ? const Center(child: CircularProgressIndicator())
+                              : ChatList(myUsername: myUsername!)),
                   ),
                 ),
+              ),
             ],
           ),
         ),
