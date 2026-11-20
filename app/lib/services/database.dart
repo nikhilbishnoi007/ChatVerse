@@ -1,19 +1,30 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class DatabaseMethods {
-    final db= FirebaseFirestore.instance.collection("users");
+  final db = FirebaseFirestore.instance.collection("users");
+  final chat=FirebaseFirestore.instance.collection("chatrooms");
 
-  Future addUser(Map<String,dynamic> userinfo,String id)async{
-     return await db.doc(id).set(userinfo);
+  Future addUser(Map<String, dynamic> userinfo, String id) async {
+    return await db.doc(id).set(userinfo);
   }
-  Future<QuerySnapshot> getUserByEmail(String email)async{
+
+  Future<QuerySnapshot> getUserByEmail(String email) async {
     return db.where("email", isEqualTo: email).get();
   }
+
   Stream<QuerySnapshot<Map<String, dynamic>>> searchUsers(String query) {
-  return db
-      .where('username', isGreaterThanOrEqualTo: query)
-      .where('username', isLessThan: '$query\uf8ff')
-      .limit(20)
-      .snapshots();
-}
+    return db
+        .where('username', isGreaterThanOrEqualTo: query)
+        .where('username', isLessThan: '$query\uf8ff')
+        .limit(20)
+        .snapshots();
+  }
+
+ Future<bool> createChatRoom(String chatRoomId, Map<String, dynamic> chatRoomInfo) async{
+     final snapShot=await chat.doc(chatRoomId).get();
+     if(snapShot.exists) return true;
+     await chat.doc(chatRoomId).set(chatRoomInfo);
+     return false;
+
+  }
 }

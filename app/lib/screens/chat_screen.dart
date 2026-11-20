@@ -2,8 +2,17 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class ChatScreen extends StatefulWidget {
+  final String name;
   final String username;
-  const ChatScreen({super.key, required this.username});
+  final String chatRoomId;
+  final String dp;
+  const ChatScreen({
+    super.key,
+    required this.username,
+    required this.chatRoomId,
+    required this.name,
+    required this.dp,
+  });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -20,39 +29,65 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-              child: SizedBox(
-                height: 46,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: IconButton(
-                        onPressed: () => Navigator.pop(context),
-                        icon: const Icon(
-                          CupertinoIcons.arrow_left,
-                          color: Color(0xFFC2C3C5),
-                          size: 26,
-                        ),
-                      ),
+              padding: const EdgeInsets.fromLTRB(8, 12, 20, 16),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(
+                      CupertinoIcons.arrow_left,
+                      color: Color(0xFFF1F5F9),
+                      size: 24,
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 56),
-                      child: Text(
-                        widget.username,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Color(0xFFF1F5F9),
-                          fontSize: 26.0,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
+                  ),
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor: const Color(0xFF3B5BA9),
+                    backgroundImage: widget.dp.isNotEmpty
+                        ? NetworkImage(widget.dp)
+                        : null,
+                    child: widget.dp.isEmpty
+                        ? Text(
+                            widget.name.isNotEmpty
+                                ? widget.name[0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          )
+                        : null,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.3,
+                          ),
                         ),
-                      ),
+                        Text(
+                          '@${widget.username}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Color(0xFF93C5FD),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
             Expanded(
@@ -67,9 +102,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 child: Padding(
                   padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context)
-                        .viewInsets
-                        .bottom, 
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
                   ),
                   child: Column(
                     children: [

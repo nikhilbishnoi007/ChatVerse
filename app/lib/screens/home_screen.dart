@@ -1,7 +1,6 @@
 import 'package:chatverse/screens/chat_screen.dart';
 import 'package:chatverse/widgets/search_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
 import 'package:chatverse/screens/login_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -218,6 +217,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                             secondaryAnimation,
                                           ) => const ChatScreen(
                                             username: "Username",
+                                            chatRoomId: "",
+                                            name: "name",
+                                            dp: "",
                                           ),
                                       transitionsBuilder:
                                           (
