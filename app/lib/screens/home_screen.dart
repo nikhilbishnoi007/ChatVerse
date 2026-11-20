@@ -3,7 +3,6 @@ import 'package:chatverse/services/shared_prefrence.dart';
 import 'package:chatverse/widgets/chat_widget.dart';
 import 'package:chatverse/widgets/search_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:chatverse/screens/login_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -29,50 +28,6 @@ class _HomeScreenState extends State<HomeScreen> {
       myUsername = u;
       myDp = dp;
     });
-  }
-
-  Future<bool> confirmLogout(BuildContext context) async {
-    final res = await showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("LogOut"),
-          content: Text("Are you sure you want to logout"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context, true);
-              },
-              child: Text("LogOut", style: TextStyle(color: Colors.redAccent)),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context, false);
-              },
-              child: Text("No"),
-            ),
-          ],
-        );
-      },
-    );
-    return res ?? false;
-  }
-
-  Future<void> logout(BuildContext context) async {
-    try {
-      await auth.signOut();
-      if (!context.mounted) return;
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => LoginScreen()),
-        (value) => false,
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
-    }
   }
 
   @override
@@ -168,17 +123,38 @@ class _HomeScreenState extends State<HomeScreen> {
                             searching = !searching;
                           });
                         },
-                        icon: Icon(
-                          searching
-                              ? CupertinoIcons.xmark
-                              : CupertinoIcons.search,
-                          color: const Color(0xFFC2C3C5),
-                          size: 26,
+                        icon: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 250),
+                          transitionBuilder: (child, animation) {
+                            return RotationTransition(
+                              turns: Tween<double>(
+                                begin: 0.75,
+                                end: 1,
+                              ).animate(animation),
+                              child: FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              ),
+                            );
+                          },
+                          child: Icon(
+                            searching
+                                ? CupertinoIcons.xmark
+                                : CupertinoIcons.search,
+                            key: ValueKey(searching),    
+                            color: const Color(0xFFC2C3C5),
+                            size: 26,
+                          ),
                         ),
                       ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (contxt)=>ProfileScreen()));
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (contxt) => ProfileScreen(),
+                            ),
+                          );
                         },
                         child: CircleAvatar(
                           backgroundColor: Colors.white,
@@ -188,7 +164,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: dp.isEmpty
                               ? Text(
                                   initial,
-                                  style: const TextStyle( color: Color(0xFF1E3A8A),),
+                                  style: const TextStyle(
+                                    color: Color(0xFF1E3A8A),
+                                  ),
                                 )
                               : null,
                         ),
