@@ -79,46 +79,47 @@ class _ChatListState extends State<ChatList> {
                 final user = userSnap.data;
                 final name = (user?['name'] ?? other) as String;
                 final dp = (user?['dp'] ?? '') as String;
-                return ListTile(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ChatScreen(
-                          username: other,
-                          chatRoomId: room.id,
-                          name: name,
-                          dp: dp,
-                        ),
+                void openChat() {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ChatScreen(
+                        username: other,
+                        chatRoomId: room.id,
+                        name: name,
+                        dp: dp,
                       ),
-                    );
-                  },
-                  leading: CircleAvatar(
-                    backgroundColor: const Color(0xFF1E3A8A),
-                    backgroundImage: dp.isNotEmpty ? NetworkImage(dp) : null,
-                    child: dp.isEmpty
-                        ? Text(
-                            other.isNotEmpty ? other[0]: '?',
-                            style: const TextStyle(color: Colors.white),
-                          )
-                        : null,
-                  ),
-                  title: Text(
-                    name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  subtitle: Text(
-                    sentByMe ? 'You: $lastMessage' : lastMessage,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  trailing: Text(
-                    ts == null ? '' : _formateTime(ts),
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                );
+                    ),
+                  );
+                }
+                return ListTile(
+                    onTap: openChat,
+                    leading: CircleAvatar(
+                      backgroundColor: const Color(0xFF1E3A8A),
+                      backgroundImage: dp.isNotEmpty ? NetworkImage(dp) : null,
+                      child: dp.isEmpty
+                          ? Text(
+                              other.isNotEmpty ? other[0] : '?',
+                              style: const TextStyle(color: Colors.white),
+                            )
+                          : null,
+                    ),
+                    title: Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(
+                      sentByMe ? 'You: $lastMessage' : lastMessage,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: Text(
+                      ts == null ? '' : _formateTime(ts),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  );
               },
             );
           },
