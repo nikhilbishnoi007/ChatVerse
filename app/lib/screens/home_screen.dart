@@ -1,10 +1,10 @@
-import 'package:chatverse/screens/chat_screen.dart';
+import 'package:chatverse/services/shared_prefrence.dart';
+import 'package:chatverse/widgets/chat_widget.dart';
 import 'package:chatverse/widgets/search_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:chatverse/screens/login_screen.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,6 +18,13 @@ class _HomeScreenState extends State<HomeScreen> {
   bool searching = false;
   final searchController = TextEditingController();
   String query = '';
+  String? myUsername;
+
+  Future<void> _getUsername() async {
+  final u = await SharedPrefrenceHelper().getUserName();
+  if (!mounted) return;
+  setState(() => myUsername = u);
+}
 
   Future<bool> confirmLogout(BuildContext context) async {
     final res = await showDialog(
@@ -62,6 +69,11 @@ class _HomeScreenState extends State<HomeScreen> {
           .showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
+  @override
+  void initState(){
+    super.initState();
+    _getUsername();
+  }
 
   @override
   void dispose() {
@@ -71,8 +83,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    DateTime currentdate = DateTime.now();
-    final format = DateFormat("h:mm a").format(currentdate);
     return PopScope(
       canPop: !searching,
       onPopInvokedWithResult: (didPop, result) {
@@ -195,71 +205,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: double.infinity,
                     child: (searching && query.isNotEmpty)
                         ? SearchResult(query: query)
-                        : ListView(
-                            padding: const EdgeInsets.only(top: 8),
-                            children: [
-                              ListTile(
-                                onTap: () {
-                                  setState(() => searching = false);
-                                  Navigator.push(
-                                    context,
-                                    PageRouteBuilder(
-                                      transitionDuration: const Duration(
-                                        milliseconds: 350,
-                                      ),
-                                      reverseTransitionDuration: const Duration(
-                                        milliseconds: 300,
-                                      ),
-                                      pageBuilder:
-                                          (
-                                            context,
-                                            animation,
-                                            secondaryAnimation,
-                                          ) => const ChatScreen(
-                                            username: "Username",
-                                            chatRoomId: "",
-                                            name: "name",
-                                            dp: "",
-                                          ),
-                                      transitionsBuilder:
-                                          (
-                                            context,
-                                            animation,
-                                            secondaryAnimation,
-                                            child,
-                                          ) {
-                                            final curved = CurvedAnimation(
-                                              parent: animation,
-                                              curve: Curves.easeOutCubic,
-                                            );
-                                            return FadeTransition(
-                                              opacity: curved,
-                                              child: SlideTransition(
-                                                position: Tween<Offset>(
-                                                  begin: const Offset(0.15, 0),
-                                                  end: Offset.zero,
-                                                ).animate(curved),
-                                                child: child,
-                                              ),
-                                            );
-                                          },
-                                    ),
-                                  );
-                                },
-                                leading: const CircleAvatar(
-                                  child: Icon(CupertinoIcons.person),
-                                ),
-                                title: const Text("Username"),
-                                subtitle: const Text(
-                                  "Last message from this user",
-                                ),
-                                trailing: Text(format),
-                              ),
-                            ],
-                          ),
+                        : (myUsername==null
+                        ? const Center(child: CircularProgressIndicator())
+                        :ChatList(myUsername: myUsername!)),
+                        )
                   ),
                 ),
-              ),
             ],
           ),
         ),

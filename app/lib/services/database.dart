@@ -51,4 +51,18 @@ class DatabaseMethods {
         .orderBy("time", descending: true)
         .snapshots();
   }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> getMyChatRooms(String userName) {
+    return chat.where("users", arrayContains: userName).snapshots();
+  }
+
+  Future<Map<String, dynamic>?> getUserByUsername(String username) async {
+    final snap = await FirebaseFirestore.instance
+        .collection("users")
+        .where("username", isEqualTo: username)
+        .limit(1)
+        .get();
+    if (snap.docs.isEmpty) return null;
+    return snap.docs.first.data();
+  }
 }
