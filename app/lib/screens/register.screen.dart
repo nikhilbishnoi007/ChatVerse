@@ -374,7 +374,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       setState(() => hidesecondpass = !hidesecondpass);
                                     },
                                     icon: Icon(
-                                      hidepass
+                                      hidesecondpass
                                           ? CupertinoIcons.eye_slash
                                           : CupertinoIcons.eye,
                                     ),
